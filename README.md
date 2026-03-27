@@ -5,3 +5,5 @@
 欲しい機能がすべて揃っているアプリを見つけられなかったので作りました
 
 ![Screenshot](assets/screenshot_1.webp)
+
+ホライズちゃん かわいい
