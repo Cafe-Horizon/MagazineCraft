@@ -1,0 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@400;700;900&family=Yusei+Magic&family=M+PLUS+Rounded+1c:wght@800&family=Dela+Gothic+One&family=Yuji+Syuku&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans JP", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif JP", ui-serif, Georgia, serif;
+  --font-magic: "Yusei Magic", cursive;
+  --font-rounded: "M PLUS Rounded 1c", sans-serif;
+  --font-dela: "Dela Gothic One", sans-serif;
+  --font-yuji: "Yuji Syuku", serif;
+}

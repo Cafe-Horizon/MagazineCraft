@@ -1,0 +1,26 @@
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { EditorStateService } from './services/editor-state.service';
+import { HeaderComponent } from './components/header/header.component';
+import { SidebarLeftComponent } from './components/sidebar-left/sidebar-left.component';
+import { SidebarRightComponent } from './components/sidebar-right/sidebar-right.component';
+import { CanvasComponent } from './components/canvas/canvas.component';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, HeaderComponent, SidebarLeftComponent, SidebarRightComponent, CanvasComponent],
+  templateUrl: './app.html',
+  styleUrl: './app.css',
+})
+export class App {
+  editorService = inject(EditorStateService);
+
+  cancelDelete() {
+    this.editorService.cancelDelete();
+  }
+
+  executeDelete() {
+    this.editorService.executeDelete();
+  }
+}

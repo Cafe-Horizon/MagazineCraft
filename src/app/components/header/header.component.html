@@ -1,0 +1,44 @@
+<header class="h-14 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between px-4 lg:px-6 shrink-0 z-50">
+  <div class="flex items-center gap-2 lg:gap-3">
+    <button (click)="toggleLeftSidebar()" class="lg:hidden p-2 text-zinc-400 hover:text-white transition-colors">
+      <mat-icon>{{ editorService.showLeftSidebar() ? 'close' : 'menu' }}</mat-icon>
+    </button>
+    <mat-icon class="text-red-500 hidden sm:block">auto_awesome_mosaic</mat-icon>
+    <h1 class="text-sm lg:text-lg font-bold tracking-tight truncate">MagazineCraft</h1>
+  </div>
+  <div class="flex items-center gap-1 lg:gap-3">
+    <button (click)="undo()" [disabled]="!canUndo()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm flex items-center justify-center transition-colors border border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed" title="元に戻す (Ctrl+Z)">
+      <mat-icon class="text-sm">undo</mat-icon>
+    </button>
+    <button (click)="redo()" [disabled]="!canRedo()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm flex items-center justify-center transition-colors border border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed" title="やり直し (Ctrl+Y)">
+      <mat-icon class="text-sm">redo</mat-icon>
+    </button>
+    <div class="flex items-center bg-zinc-800 rounded-md border border-zinc-700 overflow-hidden ml-1 lg:ml-2">
+      <button (click)="zoomOut()" class="p-1 lg:px-2 hover:bg-zinc-700 text-zinc-300 transition-colors flex items-center justify-center" title="縮小 (Ctrl + -)">
+        <mat-icon class="text-sm">remove</mat-icon>
+      </button>
+      <button (click)="zoomReset()" class="px-2 lg:px-3 text-xs font-medium text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors h-7 lg:h-8 min-w-[3.5rem] text-center border-x border-zinc-700" title="画面サイズに合わせる (Ctrl + 0)">
+        {{ getZoomDisplay() }}
+      </button>
+      <button (click)="zoomIn()" class="p-1 lg:px-2 hover:bg-zinc-700 text-zinc-300 transition-colors flex items-center justify-center" title="拡大 (Ctrl + +)">
+        <mat-icon class="text-sm">add</mat-icon>
+      </button>
+    </div>
+    <button (click)="exportData()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm flex items-center gap-2 transition-colors border border-zinc-700 ml-1 lg:ml-2" title="エクスポート">
+      <mat-icon class="text-sm">file_download</mat-icon>
+      <span class="hidden lg:inline">エクスポート</span>
+    </button>
+    <label class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm flex items-center gap-2 transition-colors border border-zinc-700 cursor-pointer" title="インポート">
+      <mat-icon class="text-sm">file_upload</mat-icon>
+      <span class="hidden lg:inline">インポート</span>
+      <input type="file" class="hidden" accept=".json" (change)="importData($event)" />
+    </label>
+    <button (click)="downloadImage()" class="bg-red-600 hover:bg-red-700 text-white p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm flex items-center gap-2 transition-colors" title="画像として保存">
+      <mat-icon class="text-sm">download</mat-icon>
+      <span class="hidden lg:inline">保存</span>
+    </button>
+    <button (click)="toggleRightSidebar()" class="lg:hidden p-2 text-zinc-400 hover:text-white transition-colors" [class.text-blue-500]="editorService.selectedElementIds().length > 0">
+      <mat-icon>{{ editorService.showRightSidebar() ? 'close' : 'settings' }}</mat-icon>
+    </button>
+  </div>
+</header>

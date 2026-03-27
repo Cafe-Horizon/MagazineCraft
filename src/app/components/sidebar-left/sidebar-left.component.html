@@ -1,0 +1,232 @@
+<aside 
+  class="fixed lg:static inset-y-0 left-0 w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-y-auto shrink-0 z-40 transition-transform duration-300 ease-in-out"
+  [class.-translate-x-full]="!editorService.showLeftSidebar()"
+  [class.translate-x-0]="editorService.showLeftSidebar()"
+>
+  <div class="p-4 space-y-6">
+    
+    <!-- Background -->
+    <div>
+      <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">背景画像</h2>
+      <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-zinc-700 border-dashed rounded-lg cursor-pointer hover:bg-zinc-800 transition-colors">
+        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+          <mat-icon class="text-zinc-400 mb-1">add_photo_alternate</mat-icon>
+          <p class="text-xs text-zinc-400">クリックしてアップロード</p>
+        </div>
+        <input type="file" class="hidden" accept="image/*" (change)="handleBackgroundUpload($event)" />
+      </label>
+    </div>
+
+    <!-- Add Elements -->
+    <div>
+      <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">要素を追加</h2>
+      <div class="grid grid-cols-3 gap-2">
+        <button (click)="addText()" class="flex flex-col items-center justify-center p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors border border-zinc-700">
+          <mat-icon class="text-zinc-300 mb-1">title</mat-icon>
+          <span class="text-xs font-medium">テキスト</span>
+        </button>
+        <label class="flex flex-col items-center justify-center p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors border border-zinc-700 cursor-pointer">
+          <mat-icon class="text-zinc-300 mb-1">image</mat-icon>
+          <span class="text-xs font-medium">画像</span>
+          <input type="file" class="hidden" accept="image/*" (change)="handleImageUpload($event)" />
+        </label>
+        <button (click)="addShape()" class="flex flex-col items-center justify-center p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors border border-zinc-700">
+          <mat-icon class="text-zinc-300 mb-1">rectangle</mat-icon>
+          <span class="text-xs font-medium">図形</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Presets -->
+    <div>
+      <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">テキストプリセット</h2>
+      <div class="space-y-2">
+        @for (preset of presets; track preset.name) {
+          <button (click)="applyPreset(preset)" class="w-full text-left px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm transition-colors border border-zinc-700 truncate">
+            {{ preset.name }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Layers -->
+    <div>
+      <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">レイヤー</h2>
+      <div class="space-y-1">
+        @for (node of editorService.layerTree(); track node.id) {
+          @if (node.isGroup) {
+            <div class="flex flex-col gap-1">
+              <div 
+                class="flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors"
+                [class.bg-blue-600]="editorService.isGroupSelected(node.id)"
+                [class.text-white]="editorService.isGroupSelected(node.id)"
+                [class.bg-zinc-800]="!editorService.isGroupSelected(node.id)"
+                [class.text-zinc-300]="!editorService.isGroupSelected(node.id)"
+                [class.hover:bg-zinc-700]="!editorService.isGroupSelected(node.id)"
+                (click)="selectGroup(node.id, $event)"
+                (keydown.enter)="selectGroup(node.id, $event)"
+                (keydown.space)="selectGroup(node.id, $event)"
+                tabindex="0"
+              >
+                <div class="flex items-center gap-1 overflow-hidden">
+                  <button (click)="toggleGroup(node.id, $event)" class="p-0.5 hover:bg-black/20 rounded">
+                    <mat-icon class="text-[16px] w-4 h-4 flex items-center justify-center">{{ node.isExpanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                  </button>
+                  <mat-icon class="text-[16px] w-4 h-4 flex-shrink-0 flex items-center justify-center">folder</mat-icon>
+                  <span class="text-xs truncate">{{ node.name }}</span>
+                </div>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button 
+                    class="p-0.5 rounded hover:bg-black/20 transition-colors flex items-center justify-center"
+                    (click)="toggleLock(node.id, $event)"
+                    title="ロック切り替え"
+                  >
+                    <mat-icon class="text-[14px] w-3.5 h-3.5">{{ node.hasLockedChildren ? 'lock' : 'lock_open' }}</mat-icon>
+                  </button>
+                  <button 
+                    class="p-0.5 rounded hover:bg-black/20 transition-colors flex items-center justify-center"
+                    (click)="reorderNode(node.id, 'up', $event)"
+                    title="前面へ"
+                  >
+                    <mat-icon class="text-[14px] w-3.5 h-3.5">arrow_upward</mat-icon>
+                  </button>
+                  <button 
+                    class="p-0.5 rounded hover:bg-black/20 transition-colors flex items-center justify-center"
+                    (click)="reorderNode(node.id, 'down', $event)"
+                    title="背面へ"
+                  >
+                    <mat-icon class="text-[14px] w-3.5 h-3.5">arrow_downward</mat-icon>
+                  </button>
+                  <button 
+                    class="p-0.5 rounded transition-colors flex items-center justify-center"
+                    [class.hover:bg-red-500]="!node.hasLockedChildren"
+                    [class.hover:bg-red-500/80]="!node.hasLockedChildren"
+                    [class.opacity-50]="node.hasLockedChildren"
+                    [class.cursor-not-allowed]="node.hasLockedChildren"
+                    [disabled]="node.hasLockedChildren"
+                    (click)="!node.hasLockedChildren && confirmDelete(node.id, $event)"
+                    title="削除"
+                  >
+                    <mat-icon class="text-[14px] w-3.5 h-3.5">delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+              
+              @if (node.isExpanded) {
+                <div class="pl-4 space-y-1">
+                  @for (child of node.children; track child.id) {
+                    <div 
+                      class="flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors"
+                      [class.bg-blue-600]="editorService.selectedElementIds().includes(child.id)"
+                      [class.text-white]="editorService.selectedElementIds().includes(child.id)"
+                      [class.bg-zinc-800]="!editorService.selectedElementIds().includes(child.id)"
+                      [class.text-zinc-300]="!editorService.selectedElementIds().includes(child.id)"
+                      [class.hover:bg-zinc-700]="!editorService.selectedElementIds().includes(child.id)"
+                      (click)="selectElement(child.id, $event)"
+                      (keydown.enter)="selectElement(child.id, $event)"
+                      (keydown.space)="selectElement(child.id, $event)"
+                      tabindex="0"
+                    >
+                      <div class="flex items-center gap-2 overflow-hidden">
+                        <mat-icon class="text-[16px] w-4 h-4 flex-shrink-0 flex items-center justify-center">
+                          {{ child.type === 'text' ? 'title' : child.type === 'image' ? 'image' : 'category' }}
+                        </mat-icon>
+                        <span class="text-xs truncate">
+                          {{ child.type === 'text' ? child.text : child.type === 'image' ? '画像' : '図形' }}
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-1 flex-shrink-0">
+                        <button 
+                          class="p-0.5 rounded hover:bg-black/20 transition-colors flex items-center justify-center"
+                          (click)="toggleLock(child.id, $event)"
+                          title="ロック切り替え"
+                        >
+                          <mat-icon class="text-[14px] w-3.5 h-3.5">{{ child.locked ? 'lock' : 'lock_open' }}</mat-icon>
+                        </button>
+                        <button 
+                          class="p-0.5 rounded transition-colors flex items-center justify-center"
+                          [class.hover:bg-red-500]="!child.locked"
+                          [class.hover:bg-red-500/80]="!child.locked"
+                          [class.opacity-50]="child.locked"
+                          [class.cursor-not-allowed]="child.locked"
+                          [disabled]="child.locked"
+                          (click)="!child.locked && confirmDelete(child.id, $event)"
+                          title="削除"
+                        >
+                          <mat-icon class="text-[14px] w-3.5 h-3.5">delete</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div 
+              class="flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors"
+              [class.bg-blue-600]="editorService.selectedElementIds().includes(node.id)"
+              [class.text-white]="editorService.selectedElementIds().includes(node.id)"
+              [class.bg-zinc-800]="!editorService.selectedElementIds().includes(node.id)"
+              [class.text-zinc-300]="!editorService.selectedElementIds().includes(node.id)"
+              [class.hover:bg-zinc-700]="!editorService.selectedElementIds().includes(node.id)"
+              (click)="selectElement(node.id, $event)"
+              (keydown.enter)="selectElement(node.id, $event)"
+              (keydown.space)="selectElement(node.id, $event)"
+              tabindex="0"
+            >
+              <div class="flex items-center gap-2 overflow-hidden">
+                <mat-icon class="text-[16px] w-4 h-4 flex-shrink-0 flex items-center justify-center">
+                  {{ node.type === 'text' ? 'title' : node.type === 'image' ? 'image' : 'category' }}
+                </mat-icon>
+                <span class="text-xs truncate">
+                  {{ node.type === 'text' ? node.text : node.type === 'image' ? '画像' : '図形' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button 
+                  class="p-0.5 rounded hover:bg-black/20 transition-colors flex items-center justify-center"
+                  (click)="toggleLock(node.id, $event)"
+                  title="ロック切り替え"
+                >
+                  <mat-icon class="text-[14px] w-3.5 h-3.5">{{ node.locked ? 'lock' : 'lock_open' }}</mat-icon>
+                </button>
+                <button 
+                  class="p-0.5 rounded hover:bg-black/20 transition-colors flex items-center justify-center"
+                  (click)="reorderNode(node.id, 'up', $event)"
+                  title="前面へ"
+                >
+                  <mat-icon class="text-[14px] w-3.5 h-3.5">arrow_upward</mat-icon>
+                </button>
+                <button 
+                  class="p-0.5 rounded hover:bg-black/20 transition-colors flex items-center justify-center"
+                  (click)="reorderNode(node.id, 'down', $event)"
+                  title="背面へ"
+                >
+                  <mat-icon class="text-[14px] w-3.5 h-3.5">arrow_downward</mat-icon>
+                </button>
+                <button 
+                  class="p-0.5 rounded transition-colors flex items-center justify-center"
+                  [class.hover:bg-red-500]="!(node.isGroup ? node.hasLockedChildren : node.locked)"
+                  [class.hover:bg-red-500/80]="!(node.isGroup ? node.hasLockedChildren : node.locked)"
+                  [class.opacity-50]="node.isGroup ? node.hasLockedChildren : node.locked"
+                  [class.cursor-not-allowed]="node.isGroup ? node.hasLockedChildren : node.locked"
+                  [disabled]="node.isGroup ? node.hasLockedChildren : node.locked"
+                  (click)="!(node.isGroup ? node.hasLockedChildren : node.locked) && confirmDelete(node.id, $event)"
+                  title="削除"
+                >
+                  <mat-icon class="text-[14px] w-3.5 h-3.5">delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
+        }
+        @if (editorService.allElements().length === 0) {
+          <div class="text-xs text-zinc-500 text-center py-4">
+            レイヤーがありません
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+</aside>

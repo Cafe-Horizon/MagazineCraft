@@ -1,0 +1,104 @@
+<main class="flex-1 bg-zinc-950 overflow-auto relative flex" (click)="deselectAll()"
+  (keydown.enter)="deselectAll()" (keydown.space)="deselectAll()" tabindex="0" (mousemove)="onMouseMove($event)"
+  (mouseup)="onMouseUp()" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd()" (wheel)="onWheel($event)">
+
+  <!-- Wrapper for safe padding and centering -->
+  <div class="m-auto flex-shrink-0 relative block"
+    [style.width.px]="editorService.canvasWidth() * getScaleValue() + (editorService.isMobile() ? 32 : 128)"
+    [style.height.px]="editorService.canvasHeight() * getScaleValue() + (editorService.isMobile() ? 32 : 128)">
+    
+    <!-- The Canvas Container -->
+    <div id="main-canvas" #canvasContainer class="absolute top-4 left-4 lg:top-16 lg:left-16 bg-white shadow-2xl overflow-hidden origin-top-left max-w-none"
+    [style.width.px]="editorService.canvasWidth()" [style.height.px]="editorService.canvasHeight()"
+    [style.transform]="getTransformScale()">
+    <!-- Background Image -->
+    @if (editorService.backgroundImage()) {
+    <img [src]="editorService.backgroundImage()" alt="背景画像"
+      class="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+    } @else {
+    <div class="absolute inset-0 flex items-center justify-center text-zinc-300 bg-zinc-100 pointer-events-none">
+      <span class="text-xl font-medium">背景画像を設定してください</span>
+    </div>
+    }
+
+    <!-- Snapping Guides -->
+    @if (editorService.horizontalGuide() !== null) {
+    <div class="absolute top-0 left-0 right-0 border-t border-red-500 z-50 pointer-events-none"
+      [style.transform]="'translate3d(0, ' + editorService.horizontalGuide() + 'px, 0)'"></div>
+    }
+    @if (editorService.verticalGuide() !== null) {
+    <div class="absolute top-0 bottom-0 left-0 border-l border-red-500 z-50 pointer-events-none"
+      [style.transform]="'translate3d(' + editorService.verticalGuide() + 'px, 0, 0)'"></div>
+    }
+
+    <!-- Text Elements -->
+    @for (el of editorService.textElements(); track el.id) {
+    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none"
+      [class.pointer-events-none]="el.locked && !editorService.selectedElementIds().includes(el.id)"
+      [class.ring-2]="editorService.selectedElementIds().includes(el.id)"
+      [class.ring-blue-500]="editorService.selectedElementIds().includes(el.id)" [style.z-index]="el.zIndex"
+      [style.font-size.px]="el.fontSize" [style.font-family]="el.fontFamily" [style.color]="el.color"
+      [style.background-color]="el.backgroundColor" [style.font-weight]="el.fontWeight"
+      [style.writing-mode]="el.writingMode" [style.text-shadow]="el.textShadow"
+      [style.letter-spacing.px]="el.letterSpacing" [style.line-height]="el.lineHeight" [style.padding.px]="el.padding"
+      [style.text-align]="el.textAlign" [style.-webkit-text-stroke]="el.strokeWidth + 'px ' + el.strokeColor"
+      [style.paint-order]="'stroke fill'"
+      [style.transform]="'translate3d(' + el.x + 'px, ' + el.y + 'px, 0) rotate(' + el.rotation + 'deg) scale(' + el.scaleX + ', ' + el.scaleY + ')'"
+      (mousedown)="onMouseDown($event, el.id)" (touchstart)="onTouchStart($event, el.id)"
+      (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"
+      (keydown.space)="$event.stopPropagation()" tabindex="0">
+      <div class="whitespace-pre-wrap outline-none"
+        [attr.contenteditable]="editorService.selectedElementIds().length === 1 && editorService.selectedElementIds().includes(el.id)"
+        (input)="updateTextContent(el.id, $event)" (blur)="updateTextContent(el.id, $event)" [innerText]="el.text">
+      </div>
+    </div>
+    }
+
+    <!-- Shape Elements -->
+    @for (el of editorService.shapeElements(); track el.id) {
+    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none"
+      [class.pointer-events-none]="el.locked && !editorService.selectedElementIds().includes(el.id)"
+      [class.ring-2]="editorService.selectedElementIds().includes(el.id)"
+      [class.ring-blue-500]="editorService.selectedElementIds().includes(el.id)" [style.width.px]="el.width"
+      [style.height.px]="el.height" [style.z-index]="el.zIndex" [style.background-color]="el.backgroundColor"
+      [style.transform]="'translate3d(' + el.x + 'px, ' + el.y + 'px, 0) rotate(' + el.rotation + 'deg)'"
+      (mousedown)="onMouseDown($event, el.id)" (touchstart)="onTouchStart($event, el.id)"
+      (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"
+      (keydown.space)="$event.stopPropagation()" tabindex="0">
+      <!-- Resize Handle -->
+      @if (editorService.selectedElementIds().length === 1 && editorService.selectedElementIds().includes(el.id)) {
+      <div
+        class="absolute bottom-0 right-0 w-6 h-6 lg:w-4 lg:h-4 bg-blue-500 cursor-se-resize rounded-full transform translate-x-1/2 translate-y-1/2"
+        (mousedown)="onResizeStart($event, el.id)" (touchstart)="onResizeTouchStart($event, el.id)"
+        (keydown.enter)="onResizeStart($event, el.id)" (keydown.space)="onResizeStart($event, el.id)" tabindex="0">
+      </div>
+      }
+    </div>
+    }
+
+    <!-- Image Elements -->
+    @for (el of editorService.imageElements(); track el.id) {
+    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none"
+      [class.pointer-events-none]="el.locked && !editorService.selectedElementIds().includes(el.id)"
+      [class.ring-2]="editorService.selectedElementIds().includes(el.id)"
+      [class.ring-blue-500]="editorService.selectedElementIds().includes(el.id)" [style.width.px]="el.width"
+      [style.height.px]="el.height" [style.z-index]="el.zIndex"
+      [style.transform]="'translate3d(' + el.x + 'px, ' + el.y + 'px, 0) rotate(' + el.rotation + 'deg)'"
+      (mousedown)="onMouseDown($event, el.id)" (touchstart)="onTouchStart($event, el.id)"
+      (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"
+      (keydown.space)="$event.stopPropagation()" tabindex="0">
+      <img [src]="el.src" alt="画像要素" class="w-full h-full object-cover pointer-events-none" />
+
+      <!-- Resize Handle -->
+      @if (editorService.selectedElementIds().length === 1 && editorService.selectedElementIds().includes(el.id)) {
+      <div
+        class="absolute bottom-0 right-0 w-6 h-6 lg:w-4 lg:h-4 bg-blue-500 cursor-se-resize rounded-full transform translate-x-1/2 translate-y-1/2"
+        (mousedown)="onResizeStart($event, el.id)" (touchstart)="onResizeTouchStart($event, el.id)"
+        (keydown.enter)="onResizeStart($event, el.id)" (keydown.space)="onResizeStart($event, el.id)" tabindex="0">
+      </div>
+      }
+    </div>
+    }
+  </div>
+  </div>
+</main>

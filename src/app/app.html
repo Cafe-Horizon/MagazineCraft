@@ -1,0 +1,48 @@
+<div class="h-screen flex flex-col bg-zinc-900 text-zinc-100 font-sans overflow-hidden">
+  <app-header class="contents"></app-header>
+  
+  <div class="flex-1 flex overflow-hidden relative">
+    <app-sidebar-left class="contents"></app-sidebar-left>
+    <app-canvas class="contents"></app-canvas>
+    <app-sidebar-right class="contents"></app-sidebar-right>
+
+    <!-- Mobile Overlays -->
+    @if (editorService.isMobile() && (editorService.showLeftSidebar() || editorService.showRightSidebar())) {
+      <div 
+        class="fixed inset-0 bg-black/50 z-30"
+        (click)="editorService.showLeftSidebar.set(false); editorService.showRightSidebar.set(false)"
+        (keydown.escape)="editorService.showLeftSidebar.set(false); editorService.showRightSidebar.set(false)"
+        tabindex="0"
+        aria-label="Close sidebars"
+      ></div>
+    }
+
+    <!-- Delete Confirmation Modal -->
+    @if (editorService.showDeleteConfirm()) {
+      <div class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl max-w-sm w-full overflow-hidden">
+          <div class="p-6">
+            <h3 class="text-lg font-medium text-zinc-100 mb-2">レイヤーの削除</h3>
+            <p class="text-sm text-zinc-400">
+              選択したレイヤーを削除してもよろしいですか？この操作は元に戻せません。
+            </p>
+          </div>
+          <div class="bg-zinc-950 px-6 py-4 flex justify-end gap-3 border-t border-zinc-800">
+            <button 
+              class="px-4 py-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
+              (click)="cancelDelete()"
+            >
+              キャンセル
+            </button>
+            <button 
+              class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+              (click)="executeDelete()"
+            >
+              削除する
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

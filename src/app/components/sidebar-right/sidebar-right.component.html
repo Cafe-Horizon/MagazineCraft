@@ -1,0 +1,601 @@
+<aside 
+  class="fixed lg:static inset-y-0 right-0 w-72 bg-zinc-900 border-l border-zinc-800 flex flex-col overflow-y-auto shrink-0 z-40 transition-transform duration-300 ease-in-out"
+  [class.translate-x-full]="!editorService.showRightSidebar()"
+  [class.translate-x-0]="editorService.showRightSidebar()"
+>
+  <!-- Mobile Close Button -->
+  @if (editorService.isMobile()) {
+    <div class="p-2 border-b border-zinc-800 flex justify-end">
+      <button (click)="toggleRightSidebar()" class="p-2 text-zinc-400 hover:text-white">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
+  <div class="p-4">
+    <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">プロパティ</h2>
+    
+    @if (editorService.selectedGroupId()) {
+      <div class="space-y-5">
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-zinc-300">グループ</span>
+          <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400 uppercase">GROUP</span>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-xs text-zinc-400" for="group-name">グループ名</label>
+          <input type="text" 
+            id="group-name"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500"
+            [ngModel]="getGroupName(editorService.selectedGroupId()!)"
+            (ngModelChange)="updateGroupName(editorService.selectedGroupId()!, $event)"
+          />
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input type="checkbox" 
+            id="group-locked"
+            class="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-blue-600 focus:ring-blue-600 focus:ring-offset-zinc-950"
+            [ngModel]="!isGroupLocked(editorService.selectedGroupId()!)"
+            (ngModelChange)="setGroupLock(editorService.selectedGroupId()!, !$event)"
+          />
+          <label class="text-sm text-zinc-300 cursor-pointer select-none" for="group-locked">クリックで選択可能</label>
+        </div>
+        
+        <div class="pt-4 border-t border-zinc-800">
+          <h3 class="text-xs font-medium text-zinc-400 mb-3">整列</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="左揃え" (click)="!hasLockedSelectedElements() && alignSelected('left')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_horizontal_left</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="水平方向中央揃え" (click)="!hasLockedSelectedElements() && alignSelected('center')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_horizontal_center</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="右揃え" (click)="!hasLockedSelectedElements() && alignSelected('right')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_horizontal_right</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="上揃え" (click)="!hasLockedSelectedElements() && alignSelected('top')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_vertical_top</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="垂直方向中央揃え" (click)="!hasLockedSelectedElements() && alignSelected('middle')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_vertical_center</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="下揃え" (click)="!hasLockedSelectedElements() && alignSelected('bottom')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_vertical_bottom</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-zinc-800">
+          <button 
+            class="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            (click)="ungroupSelected()"
+          >
+            <mat-icon class="text-[18px] w-[18px] h-[18px]">format_shapes</mat-icon>
+            グループ解除
+          </button>
+        </div>
+      </div>
+    } @else if (editorService.selectedElementIds().length > 1) {
+      <div class="space-y-5">
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-zinc-300">複数選択</span>
+          <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400 uppercase">{{ editorService.selectedElementIds().length }} アイテム</span>
+        </div>
+        
+        <div class="pt-4 border-t border-zinc-800">
+          <h3 class="text-xs font-medium text-zinc-400 mb-3">整列</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="左揃え" (click)="!hasLockedSelectedElements() && alignSelected('left')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_horizontal_left</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="水平方向中央揃え" (click)="!hasLockedSelectedElements() && alignSelected('center')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_horizontal_center</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="右揃え" (click)="!hasLockedSelectedElements() && alignSelected('right')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_horizontal_right</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="上揃え" (click)="!hasLockedSelectedElements() && alignSelected('top')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_vertical_top</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="垂直方向中央揃え" (click)="!hasLockedSelectedElements() && alignSelected('middle')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_vertical_center</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 rounded flex items-center justify-center transition-colors" 
+              [class.text-zinc-300]="!hasLockedSelectedElements()"
+              [class.hover:bg-zinc-700]="!hasLockedSelectedElements()"
+              [class.opacity-50]="hasLockedSelectedElements()"
+              [class.cursor-not-allowed]="hasLockedSelectedElements()"
+              [disabled]="hasLockedSelectedElements()"
+              title="下揃え" (click)="!hasLockedSelectedElements() && alignSelected('bottom')">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">align_vertical_bottom</mat-icon>
+            </button>
+          </div>
+        </div>
+        
+        <div class="pt-4 border-t border-zinc-800">
+          <h3 class="text-xs font-medium text-zinc-400 mb-3">レイヤー順序</h3>
+          <div class="grid grid-cols-4 gap-2">
+            <button class="p-2 bg-zinc-800 hover:bg-zinc-700 rounded flex items-center justify-center transition-colors text-zinc-300" 
+              title="最前面へ" (click)="!hasLockedSelectedElements() && reorderSelected('top')"
+              [class.opacity-50]="hasLockedSelectedElements()" [class.cursor-not-allowed]="hasLockedSelectedElements()" [disabled]="hasLockedSelectedElements()">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">vertical_align_top</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 hover:bg-zinc-700 rounded flex items-center justify-center transition-colors text-zinc-300" 
+              title="前面へ" (click)="!hasLockedSelectedElements() && reorderSelected('up')"
+              [class.opacity-50]="hasLockedSelectedElements()" [class.cursor-not-allowed]="hasLockedSelectedElements()" [disabled]="hasLockedSelectedElements()">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">arrow_upward</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 hover:bg-zinc-700 rounded flex items-center justify-center transition-colors text-zinc-300" 
+              title="背面へ" (click)="!hasLockedSelectedElements() && reorderSelected('down')"
+              [class.opacity-50]="hasLockedSelectedElements()" [class.cursor-not-allowed]="hasLockedSelectedElements()" [disabled]="hasLockedSelectedElements()">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">arrow_downward</mat-icon>
+            </button>
+            <button class="p-2 bg-zinc-800 hover:bg-zinc-700 rounded flex items-center justify-center transition-colors text-zinc-300" 
+              title="最背面へ" (click)="!hasLockedSelectedElements() && reorderSelected('bottom')"
+              [class.opacity-50]="hasLockedSelectedElements()" [class.cursor-not-allowed]="hasLockedSelectedElements()" [disabled]="hasLockedSelectedElements()">
+              <mat-icon class="text-[18px] w-[18px] h-[18px]">vertical_align_bottom</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-zinc-800">
+          <button 
+            class="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            (click)="groupSelected()"
+          >
+            <mat-icon class="text-[18px] w-[18px] h-[18px]">group</mat-icon>
+            グループ化
+          </button>
+        </div>
+      </div>
+    } @else if (editorService.selectedElement(); as selected) {
+      <div class="space-y-5">
+        
+        <!-- Common Properties -->
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-zinc-300">種類</span>
+          <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400 uppercase">{{ selected.type }}</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input type="checkbox" 
+            id="element-locked"
+            class="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-blue-600 focus:ring-blue-600 focus:ring-offset-zinc-950"
+            [ngModel]="!selected.data.locked"
+            (ngModelChange)="selected.type === 'text' ? updateTextElement(selected.data.id, { locked: !$event }) : (selected.type === 'image' ? updateImageElement(selected.data.id, { locked: !$event }) : updateShapeElement(selected.data.id, { locked: !$event }))"
+          />
+          <label class="text-sm text-zinc-300 cursor-pointer select-none" for="element-locked">クリックで選択可能</label>
+        </div>
+
+        <!-- Text Properties -->
+        @if (selected.type === 'text') {
+          <!-- Text Content -->
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="text-content">テキスト</label>
+            <textarea 
+              id="text-content"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 resize-y min-h-[80px] disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngModel]="selected.data.text"
+              [disabled]="selected.data.locked"
+              (ngModelChange)="updateTextElement(selected.data.id, { text: $event })"
+            ></textarea>
+          </div>
+
+          <!-- Font Family -->
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="font-family">フォント</label>
+            <select 
+              id="font-family"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngModel]="selected.data.fontFamily"
+              [disabled]="selected.data.locked"
+              (ngModelChange)="updateTextElement(selected.data.id, { fontFamily: $event })"
+            >
+              @for (font of fonts; track font.value) {
+                <option [value]="font.value">{{ font.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Font Size & Weight -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="font-size">サイズ</label>
+              <input type="number" 
+                id="font-size"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.fontSize"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateTextElement(selected.data.id, { fontSize: $event })"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="font-weight">太さ</label>
+              <select 
+                id="font-weight"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.fontWeight"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateTextElement(selected.data.id, { fontWeight: $event })"
+              >
+                <option value="400">標準 (400)</option>
+                <option value="700">太字 (700)</option>
+                <option value="900">極太 (900)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Colors -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="text-color">文字色</label>
+              <div class="flex items-center gap-2">
+                <input type="color" 
+                  id="text-color"
+                  class="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  [ngModel]="selected.data.color"
+                  [disabled]="selected.data.locked"
+                  (ngModelChange)="updateTextElement(selected.data.id, { color: $event })"
+                />
+                <input type="text" 
+                  class="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  [ngModel]="selected.data.color"
+                  [disabled]="selected.data.locked"
+                  (ngModelChange)="updateTextElement(selected.data.id, { color: $event })"
+                />
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="bg-color">背景色</label>
+              <div class="flex items-center gap-2">
+                <input type="color" 
+                  id="bg-color"
+                  class="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  [ngModel]="selected.data.backgroundColor === 'transparent' ? '#ffffff' : selected.data.backgroundColor"
+                  [disabled]="selected.data.locked"
+                  (ngModelChange)="updateTextElement(selected.data.id, { backgroundColor: $event })"
+                />
+                <button 
+                  class="flex-1 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  [disabled]="selected.data.locked"
+                  (click)="updateTextElement(selected.data.id, { backgroundColor: 'transparent' })"
+                >
+                  透明
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stroke -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="stroke-color">フチ色</label>
+              <div class="flex items-center gap-2">
+                <input type="color" 
+                  id="stroke-color"
+                  class="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  [ngModel]="selected.data.strokeColor"
+                  [disabled]="selected.data.locked"
+                  (ngModelChange)="updateTextElement(selected.data.id, { strokeColor: $event })"
+                />
+                <input type="text" 
+                  class="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  [ngModel]="selected.data.strokeColor"
+                  [disabled]="selected.data.locked"
+                  (ngModelChange)="updateTextElement(selected.data.id, { strokeColor: $event })"
+                />
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="stroke-width">フチ幅 (px)</label>
+              <input type="number" 
+                id="stroke-width"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.strokeWidth"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateTextElement(selected.data.id, { strokeWidth: $event })"
+              />
+            </div>
+          </div>
+
+          <!-- Scale -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="scale-x">横倍率</label>
+              <input type="number" step="0.1"
+                id="scale-x"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.scaleX"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateTextElement(selected.data.id, { scaleX: $event })"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="scale-y">縦倍率</label>
+              <input type="number" step="0.1"
+                id="scale-y"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.scaleY"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateTextElement(selected.data.id, { scaleY: $event })"
+              />
+            </div>
+          </div>
+
+          <!-- Text Shadow -->
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="text-shadow">テキストシャドウ (CSS)</label>
+            <input type="text" 
+              id="text-shadow"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngModel]="selected.data.textShadow"
+              [disabled]="selected.data.locked"
+              (ngModelChange)="updateTextElement(selected.data.id, { textShadow: $event })"
+              placeholder="2px 2px 4px rgba(0,0,0,0.8)"
+            />
+            <p class="text-[10px] text-zinc-500 mt-1">例: 縁取りは 2px 2px 0 #000, -2px -2px 0 #000...</p>
+          </div>
+
+          <!-- Align & Orientation & Padding -->
+          <div class="grid grid-cols-3 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="text-align">揃え</label>
+              <select 
+                id="text-align"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.textAlign"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateTextElement(selected.data.id, { textAlign: $event })"
+              >
+                <option value="left">左</option>
+                <option value="center">中央</option>
+                <option value="right">右</option>
+              </select>
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="writing-mode2">方向</label>
+              <select 
+                id="writing-mode2"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.writingMode"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateTextElement(selected.data.id, { writingMode: $event })"
+              >
+                <option value="horizontal-tb">横</option>
+                <option value="vertical-rl">縦</option>
+              </select>
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="padding2">余白</label>
+              <input type="number" 
+                id="padding2"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.padding"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateTextElement(selected.data.id, { padding: $event })"
+              />
+            </div>
+          </div>
+        }
+
+        <!-- Image Properties -->
+        @if (selected.type === 'image') {
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="img-width">幅 (px)</label>
+              <input type="number" 
+                id="img-width"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.width"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateImageElement(selected.data.id, { width: $event })"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="img-height">高さ (px)</label>
+              <input type="number" 
+                id="img-height"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.height"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateImageElement(selected.data.id, { height: $event })"
+              />
+            </div>
+          </div>
+        }
+
+        <!-- Shape Properties -->
+        @if (selected.type === 'shape') {
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="shape-bg-color">背景色</label>
+            <div class="flex items-center gap-2">
+              <input type="color" 
+                id="shape-bg-color"
+                class="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.backgroundColor"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateShapeElement(selected.data.id, { backgroundColor: $event })"
+              />
+              <input type="text" 
+                class="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.backgroundColor"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateShapeElement(selected.data.id, { backgroundColor: $event })"
+              />
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="shape-width">幅 (px)</label>
+              <input type="number" 
+                id="shape-width"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.width"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateShapeElement(selected.data.id, { width: $event })"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs text-zinc-400" for="shape-height">高さ (px)</label>
+              <input type="number" 
+                id="shape-height"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                [ngModel]="selected.data.height"
+                [disabled]="selected.data.locked"
+                (ngModelChange)="updateShapeElement(selected.data.id, { height: $event })"
+              />
+            </div>
+          </div>
+        }
+
+        <!-- Common: Position & Rotation -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="pos-x">X</label>
+            <input type="number" 
+              id="pos-x"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngModel]="selected.data.x"
+              [disabled]="!!selected.data.locked"
+              (ngModelChange)="selected.type === 'text' ? updateTextElement(selected.data.id, { x: $event }) : (selected.type === 'image' ? updateImageElement(selected.data.id, { x: $event }) : updateShapeElement(selected.data.id, { x: $event }))"
+            />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="pos-y">Y</label>
+            <input type="number" 
+              id="pos-y"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngModel]="selected.data.y"
+              [disabled]="selected.data.locked"
+              (ngModelChange)="selected.type === 'text' ? updateTextElement(selected.data.id, { y: $event }) : (selected.type === 'image' ? updateImageElement(selected.data.id, { y: $event }) : updateShapeElement(selected.data.id, { y: $event }))"
+            />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="pos-rotation">回転</label>
+            <input type="number" 
+              id="pos-rotation"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              [ngModel]="selected.data.rotation"
+              [disabled]="!!selected.data.locked"
+              (ngModelChange)="selected.type === 'text' ? updateTextElement(selected.data.id, { rotation: $event }) : (selected.type === 'image' ? updateImageElement(selected.data.id, { rotation: $event }) : updateShapeElement(selected.data.id, { rotation: $event }))"
+            />
+          </div>
+        </div>
+
+        <hr class="border-zinc-800" />
+
+        <!-- Actions -->
+        <button 
+          (click)="!selected.data.locked && deleteSelected()"
+          [disabled]="selected.data.locked"
+          class="w-full bg-red-900/30 hover:bg-red-900/50 text-red-500 border border-red-900/50 rounded py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <mat-icon class="text-sm">delete</mat-icon>
+          削除
+        </button>
+      </div>
+    } @else {
+      <div class="space-y-5">
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-zinc-300">キャンバス</span>
+          <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400 uppercase">CANVAS</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="canvas-width">幅 (px)</label>
+            <input type="number" 
+              id="canvas-width"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500"
+              [ngModel]="editorService.canvasWidth()"
+              (ngModelChange)="updateCanvasWidth($event)"
+            />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs text-zinc-400" for="canvas-height">高さ (px)</label>
+            <input type="number" 
+              id="canvas-height"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-blue-500"
+              [ngModel]="editorService.canvasHeight()"
+              (ngModelChange)="updateCanvasHeight($event)"
+            />
+          </div>
+        </div>
+        
+        <div class="pt-4 border-t border-zinc-800">
+          <div class="flex flex-col items-center justify-center text-zinc-500 text-sm text-center pt-4">
+            <mat-icon class="mb-2 text-zinc-600">touch_app</mat-icon>
+            要素を選択して<br>プロパティを編集
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</aside>
