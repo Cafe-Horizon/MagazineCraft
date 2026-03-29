@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { EditorStateService } from './services/editor-state.service';
 import { HeaderComponent } from './components/header/header.component';
 import { SidebarLeftComponent } from './components/sidebar-left/sidebar-left.component';
@@ -9,7 +10,7 @@ import { CanvasComponent } from './components/canvas/canvas.component';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, SidebarLeftComponent, SidebarRightComponent, CanvasComponent],
+  imports: [CommonModule, MatIconModule, HeaderComponent, SidebarLeftComponent, SidebarRightComponent, CanvasComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
