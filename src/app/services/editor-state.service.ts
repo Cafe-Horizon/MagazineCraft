@@ -124,6 +124,25 @@ export class EditorStateService {
       this.checkMobile();
       window.addEventListener('resize', () => this.checkMobile());
 
+      if ('launchQueue' in window) {
+        (window as any).launchQueue.setConsumer(async (launchParams: any) => {
+          if (!launchParams.files || !launchParams.files.length) {
+            return;
+          }
+          const fileHandle = launchParams.files[0];
+          try {
+            const file = await fileHandle.getFile();
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (data) {
+              this.loadSnapshot(data);
+            }
+          } catch (e) {
+            console.error('Failed to load file from launchQueue', e);
+          }
+        });
+      }
+
       const savedData = localStorage.getItem('magazine-cover-data');
       if (savedData) {
         try {
