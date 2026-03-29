@@ -19,5 +19,13 @@
       "type": "image/png",
       "purpose": "maskable any"
     }
+  ],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "application/json": [".json"]
+      }
+    }
   ]
 }
