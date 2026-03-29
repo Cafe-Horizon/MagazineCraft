@@ -10,8 +10,10 @@ import { EditorStateService } from '../../services/editor-state.service';
 })
 export class CanvasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasContainer', { static: false }) canvasContainer!: ElementRef;
+  @ViewChild('scrollContainer', { static: false }) scrollContainer!: ElementRef;
   
   editorService = inject(EditorStateService);
+  isInitialized = signal(false);
   Math = Math;
 
   containerWidth = signal(0);
@@ -36,9 +38,31 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
           const target = entry.target as HTMLElement;
           this.containerWidth.set(target.clientWidth);
           this.containerHeight.set(target.clientHeight);
+
+          // Trigger initial centering as soon as dimensions are confirmed
+          if (!this.isInitialized() && target.clientWidth > 0) {
+            this.centerCanvas();
+          }
         }
       });
       this.resizeObserver.observe(parent);
+    }
+  }
+
+  private centerCanvas() {
+    if (this.scrollContainer) {
+      const el = this.scrollContainer.nativeElement as HTMLElement;
+      const scrollX = (el.scrollWidth - el.clientWidth) / 2;
+      const scrollY = (el.scrollHeight - el.clientHeight) / 2;
+      el.scrollTo({
+        left: scrollX,
+        top: scrollY,
+        behavior: 'auto'
+      });
+      // Delay visibility just slightly to ensure scroll position is applied by browser
+      requestAnimationFrame(() => {
+        this.isInitialized.set(true);
+      });
     }
   }
 
