@@ -22,7 +22,7 @@
   ],
   "file_handlers": [
     {
-      "action": "/",
+      "action": "./",
       "accept": {
         "application/json": [".json"]
       }
