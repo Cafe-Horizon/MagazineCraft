@@ -1,4 +1,5 @@
-<main class="flex-1 bg-zinc-950 overflow-auto relative flex" (click)="deselectAll()"
+<main #scrollContainer class="flex-1 bg-zinc-950 overflow-auto relative flex transition-opacity duration-200"
+  [class.opacity-0]="!isInitialized()" style="scrollbar-gutter: stable" (click)="deselectAll()"
   (keydown.enter)="deselectAll()" (keydown.space)="deselectAll()" tabindex="0" (mousemove)="onMouseMove($event)"
   (mouseup)="onMouseUp()" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd()" (wheel)="onWheel($event)">
 
@@ -16,8 +17,8 @@
     <img [src]="editorService.backgroundImage()" alt="背景画像"
       class="absolute inset-0 w-full h-full object-cover pointer-events-none" />
     } @else {
-    <div class="absolute inset-0 flex items-center justify-center text-zinc-300 bg-zinc-100 pointer-events-none">
-      <span class="text-xl font-medium">背景画像を設定してください</span>
+    <div class="absolute inset-0 flex items-center justify-center text-zinc-900 bg-zinc-100 pointer-events-none text-center p-12">
+      <span class="text-8xl font-black tracking-tighter opacity-40 capitalize">背景画像を設定してください</span>
     </div>
     }
 

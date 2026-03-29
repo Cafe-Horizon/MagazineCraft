@@ -7,6 +7,9 @@
     <h1 class="text-sm lg:text-lg font-bold tracking-tight truncate">MagazineCraft</h1>
   </div>
   <div class="flex items-center gap-1 lg:gap-3">
+    <button *ngIf="editorService.isModified()" (click)="reset()" class="bg-zinc-800 hover:bg-zinc-700 text-orange-400 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm flex items-center justify-center transition-colors border border-zinc-700 mr-1" title="初期状態にリセット">
+      <mat-icon class="text-sm">restart_alt</mat-icon>
+    </button>
     <button (click)="undo()" [disabled]="!canUndo()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm flex items-center justify-center transition-colors border border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed" title="元に戻す (Ctrl+Z)">
       <mat-icon class="text-sm">undo</mat-icon>
     </button>

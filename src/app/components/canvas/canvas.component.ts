@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, signal, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EditorStateService } from '../../services/editor-state.service';
 
@@ -8,16 +8,67 @@ import { EditorStateService } from '../../services/editor-state.service';
   imports: [CommonModule],
   templateUrl: './canvas.component.html'
 })
-export class CanvasComponent {
+export class CanvasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasContainer', { static: false }) canvasContainer!: ElementRef;
+  @ViewChild('scrollContainer', { static: false }) scrollContainer!: ElementRef;
   
   editorService = inject(EditorStateService);
+  isInitialized = signal(false);
   Math = Math;
+
+  containerWidth = signal(0);
+  containerHeight = signal(0);
+  private resizeObserver: ResizeObserver | null = null;
 
   private snapTargetsX: number[] = [];
   private snapTargetsY: number[] = [];
   private draggedElWidth = 0;
   private draggedElHeight = 0;
+
+  ngAfterViewInit() {
+    // We observe the parent of the wrapper (which is the scrollable <main> element)
+    const parent = this.canvasContainer?.nativeElement?.parentElement?.parentElement;
+    if (parent) {
+      this.containerWidth.set(parent.clientWidth);
+      this.containerHeight.set(parent.clientHeight);
+      
+      this.resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          // Use clientWidth/Height to account for scrollbars correctly
+          const target = entry.target as HTMLElement;
+          this.containerWidth.set(target.clientWidth);
+          this.containerHeight.set(target.clientHeight);
+
+          // Trigger initial centering as soon as dimensions are confirmed
+          if (!this.isInitialized() && target.clientWidth > 0) {
+            this.centerCanvas();
+          }
+        }
+      });
+      this.resizeObserver.observe(parent);
+    }
+  }
+
+  private centerCanvas() {
+    if (this.scrollContainer) {
+      const el = this.scrollContainer.nativeElement as HTMLElement;
+      const scrollX = (el.scrollWidth - el.clientWidth) / 2;
+      const scrollY = (el.scrollHeight - el.clientHeight) / 2;
+      el.scrollTo({
+        left: scrollX,
+        top: scrollY,
+        behavior: 'auto'
+      });
+      // Delay visibility just slightly to ensure scroll position is applied by browser
+      requestAnimationFrame(() => {
+        this.isInitialized.set(true);
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    this.resizeObserver?.disconnect();
+  }
 
   private computeSnapTargets(excludeIds: string[], scale: number) {
     this.snapTargetsX = [0, this.editorService.canvasWidth() / 2, this.editorService.canvasWidth()];
@@ -46,9 +97,13 @@ export class CanvasComponent {
     if (!this.editorService.autoFit()) {
       return this.editorService.zoomLevel();
     }
-    const scrollContainer = this.canvasContainer?.nativeElement?.parentElement?.parentElement;
-    const parentWidth = scrollContainer?.clientWidth || window.innerWidth;
-    const parentHeight = scrollContainer?.clientHeight || window.innerHeight;
+    
+    const pWidth = this.containerWidth();
+    const pHeight = this.containerHeight();
+    
+    // Fallback to window size only if container hasn't been measured yet
+    const parentWidth = pWidth > 0 ? pWidth : window.innerWidth;
+    const parentHeight = pHeight > 0 ? pHeight : window.innerHeight;
     
     const scaleX = Math.max(0.1, (parentWidth - 64) / this.editorService.canvasWidth());
     const scaleY = Math.max(0.1, (parentHeight - 64) / this.editorService.canvasHeight());

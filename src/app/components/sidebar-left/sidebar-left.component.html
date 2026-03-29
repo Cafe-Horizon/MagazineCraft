@@ -1,7 +1,11 @@
 <aside 
-  class="fixed lg:static inset-y-0 left-0 w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-y-auto shrink-0 z-40 transition-transform duration-300 ease-in-out"
+  class="fixed lg:static inset-y-0 left-0 bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-y-auto shrink-0 z-40 transition-all duration-300 ease-in-out"
+  [class.w-72]="editorService.showLeftSidebar()"
+  [class.w-0]="!editorService.showLeftSidebar()"
+  [class.lg:border-r-0]="!editorService.showLeftSidebar()"
   [class.-translate-x-full]="!editorService.showLeftSidebar()"
   [class.translate-x-0]="editorService.showLeftSidebar()"
+  style="scrollbar-gutter: stable"
 >
   <div class="p-4 space-y-6">
     

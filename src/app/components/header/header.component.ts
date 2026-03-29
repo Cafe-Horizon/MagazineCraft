@@ -53,6 +53,10 @@ export class HeaderComponent {
     this.editorService.zoomReset();
   }
 
+  reset() {
+    this.editorService.confirmReset();
+  }
+
   getZoomDisplay(): string {
     if (this.editorService.autoFit()) return 'Auto';
     return Math.round(this.editorService.zoomLevel() * 100) + '%';

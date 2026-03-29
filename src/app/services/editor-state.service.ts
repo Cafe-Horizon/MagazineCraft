@@ -1,5 +1,6 @@
-import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, signal, computed, effect, inject, PLATFORM_ID, NgZone } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { IndexedDbService } from './indexed-db.service';
 
 export interface BaseElement {
   id: string;
@@ -103,6 +104,9 @@ export class EditorStateService {
   showDeleteConfirm = signal(false);
   deleteTarget = signal<string | 'selected' | null>(null);
 
+  // Reset confirmation modal
+  showResetConfirm = signal(false);
+
   // Mobile state
   showLeftSidebar = signal(true);
   showRightSidebar = signal(true);
@@ -117,58 +121,64 @@ export class EditorStateService {
   zoomLevel = signal(1); // 1 = 100%
   autoFit = signal(true); 
 
+  isModified = computed(() => {
+    return (
+      this.backgroundImage() !== null ||
+      this.textElements().length > 0 ||
+      this.imageElements().length > 0 ||
+      this.shapeElements().length > 0 ||
+      this.groups().length > 0 ||
+      this.canvasWidth() !== 1600 ||
+      this.canvasHeight() !== 2262
+    );
+  });
+
   private platformId = inject(PLATFORM_ID);
+  private ngZone = inject(NgZone);
+  private indexedDb = inject(IndexedDbService);
   
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.checkMobile();
       window.addEventListener('resize', () => this.checkMobile());
 
-      if ('launchQueue' in window) {
-        (window as any).launchQueue.setConsumer(async (launchParams: any) => {
+      const handlePwaLaunch = async (launchParams: any) => {
+        this.ngZone.run(async () => {
+          console.log('[EditorStateService] Handling PWA launch:', launchParams);
           if (!launchParams.files || !launchParams.files.length) {
+            console.log('[EditorStateService] No files in launchParams');
             return;
           }
           const fileHandle = launchParams.files[0];
           try {
+            console.log('[EditorStateService] Reading file from launchParams:', fileHandle.name);
             const file = await fileHandle.getFile();
             const text = await file.text();
             const data = JSON.parse(text);
             if (data) {
-              this.loadSnapshot(data);
+              this.isStateRestoring = true;
+              try {
+                this.loadSnapshot(data);
+                console.log('[EditorStateService] File applied successfully');
+              } finally {
+                setTimeout(() => (this.isStateRestoring = false), 0);
+              }
             }
           } catch (e) {
-            console.error('Failed to load file from launchQueue', e);
+            console.error('[EditorStateService] Failed to load data from PWA launch', e);
           }
         });
+      };
+
+      // Check if there are already captured launch params (from main.ts)
+      if (window.__pwaLaunchParams) {
+        handlePwaLaunch(window.__pwaLaunchParams);
       }
 
-      const savedData = localStorage.getItem('magazine-cover-data');
-      if (savedData) {
-        try {
-          const data = JSON.parse(savedData);
-          if (data.backgroundImage) this.backgroundImage.set(data.backgroundImage);
-          
-          const ensureLocked = (els: any[]) => els.map(e => ({ ...e, locked: e.locked ?? false }));
-          
-          if (data.textElements) this.textElements.set(ensureLocked(data.textElements));
-          if (data.imageElements) this.imageElements.set(ensureLocked(data.imageElements));
-          if (data.shapeElements) this.shapeElements.set(ensureLocked(data.shapeElements));
-          if (data.groups) this.groups.set(data.groups);
-          if (data.canvasWidth) {
-            // If the saved width is the old default (800), update it to the new default (1600)
-            const width = data.canvasWidth === 800 ? 1600 : data.canvasWidth;
-            this.canvasWidth.set(width);
-          }
-          if (data.canvasHeight) {
-            // If the saved height is the old default (1131), update it to the new default (2262)
-            const height = data.canvasHeight === 1131 ? 2262 : data.canvasHeight;
-            this.canvasHeight.set(height);
-          }
-        } catch (e) {
-          console.error('Failed to load saved data', e);
-        }
-      }
+      // Register callback for future launches (if focus-existing is used)
+      window.__onPwaLaunch = (params) => handlePwaLaunch(params);
+
+      this.loadSavedState();
     }
 
     // Save data to localStorage whenever state changes
@@ -186,11 +196,7 @@ export class EditorStateService {
       const serialized = JSON.stringify(data);
 
       if (isPlatformBrowser(this.platformId)) {
-        try {
-          localStorage.setItem('magazine-cover-data', serialized);
-        } catch (e) {
-          console.warn('Failed to save data to localStorage (possibly quota exceeded)', e);
-        }
+        this.indexedDb.set('magazine-cover-data', data);
 
         // Record to undo stack
         if (!this.isStateRestoring && !this.isDragging() && !this.isResizing()) {
@@ -367,7 +373,7 @@ export class EditorStateService {
     return max;
   }
 
-  addText() {
+  addText(initialStyle?: Partial<TextElement>) {
     const newText: TextElement = {
       id: Math.random().toString(36).substring(2, 9),
       text: '見出しテキスト',
@@ -390,7 +396,8 @@ export class EditorStateService {
       lineHeight: 1.2,
       padding: 0,
       locked: false,
-      zIndex: this.getMaxZIndex() + 1
+      zIndex: this.getMaxZIndex() + 1,
+      ...initialStyle
     };
     this.textElements.update(els => [...els, newText]);
     this.selectedElementIds.set([newText.id]);
@@ -873,5 +880,58 @@ export class EditorStateService {
     if (data.canvasHeight) this.canvasHeight.set(data.canvasHeight);
     
     this.deselectAll(); // Deselect to avoid selection bound issues across undo/redo or import
+  }
+
+  async loadSavedState() {
+    this.isStateRestoring = true;
+    try {
+      const dbData = await this.indexedDb.get('magazine-cover-data');
+      if (dbData) {
+        this.loadSnapshot(dbData);
+      } else {
+        // Migration: Check localStorage
+        const savedData = localStorage.getItem('magazine-cover-data');
+        if (savedData) {
+          try {
+            const data = JSON.parse(savedData);
+            this.loadSnapshot(data);
+            // Save to IndexedDB immediately after migration
+            await this.indexedDb.set('magazine-cover-data', data);
+          } catch (e) {
+            console.error('Failed to migrate data from localStorage', e);
+          }
+        }
+      }
+    } finally {
+      setTimeout(() => (this.isStateRestoring = false), 0);
+    }
+  }
+
+  resetToInitial() {
+    this.isStateRestoring = true;
+    try {
+      this.backgroundImage.set(null);
+      this.textElements.set([]);
+      this.imageElements.set([]);
+      this.shapeElements.set([]);
+      this.groups.set([]);
+      this.canvasWidth.set(1600);
+      this.canvasHeight.set(2262);
+      this.selectedElementIds.set([]);
+      this.undoStack.set([]);
+      this.redoStack.set([]);
+      // Clear storage
+      this.indexedDb.delete('magazine-cover-data');
+    } finally {
+      setTimeout(() => (this.isStateRestoring = false), 0);
+    }
+  }
+
+  confirmReset() {
+    this.showResetConfirm.set(true);
+  }
+
+  cancelReset() {
+    this.showResetConfirm.set(false);
   }
 }
