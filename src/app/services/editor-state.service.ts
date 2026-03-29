@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, signal, computed, effect, inject, PLATFORM_ID, NgZone } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 export interface BaseElement {
@@ -118,6 +118,7 @@ export class EditorStateService {
   autoFit = signal(true); 
 
   private platformId = inject(PLATFORM_ID);
+  private ngZone = inject(NgZone);
   
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -135,7 +136,9 @@ export class EditorStateService {
             const text = await file.text();
             const data = JSON.parse(text);
             if (data) {
-              this.loadSnapshot(data);
+              this.ngZone.run(() => {
+                this.loadSnapshot(data);
+              });
             }
           } catch (e) {
             console.error('Failed to load file from launchQueue', e);
