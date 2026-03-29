@@ -60,6 +60,9 @@ export class SidebarLeftComponent {
     const selected = this.editorService.selectedElement();
     if (selected && selected.type === 'text') {
       this.editorService.updateTextElement(selected.data.id, preset.style);
+    } else {
+      // If no text element is selected, add a new one with the preset style
+      this.editorService.addText(preset.style);
     }
   }
 

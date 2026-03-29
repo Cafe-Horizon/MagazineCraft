@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, signal, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EditorStateService } from '../../services/editor-state.service';
 
@@ -8,16 +8,43 @@ import { EditorStateService } from '../../services/editor-state.service';
   imports: [CommonModule],
   templateUrl: './canvas.component.html'
 })
-export class CanvasComponent {
+export class CanvasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasContainer', { static: false }) canvasContainer!: ElementRef;
   
   editorService = inject(EditorStateService);
   Math = Math;
 
+  containerWidth = signal(0);
+  containerHeight = signal(0);
+  private resizeObserver: ResizeObserver | null = null;
+
   private snapTargetsX: number[] = [];
   private snapTargetsY: number[] = [];
   private draggedElWidth = 0;
   private draggedElHeight = 0;
+
+  ngAfterViewInit() {
+    // We observe the parent of the wrapper (which is the scrollable <main> element)
+    const parent = this.canvasContainer?.nativeElement?.parentElement?.parentElement;
+    if (parent) {
+      this.containerWidth.set(parent.clientWidth);
+      this.containerHeight.set(parent.clientHeight);
+      
+      this.resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          // Use clientWidth/Height to account for scrollbars correctly
+          const target = entry.target as HTMLElement;
+          this.containerWidth.set(target.clientWidth);
+          this.containerHeight.set(target.clientHeight);
+        }
+      });
+      this.resizeObserver.observe(parent);
+    }
+  }
+
+  ngOnDestroy() {
+    this.resizeObserver?.disconnect();
+  }
 
   private computeSnapTargets(excludeIds: string[], scale: number) {
     this.snapTargetsX = [0, this.editorService.canvasWidth() / 2, this.editorService.canvasWidth()];
@@ -46,9 +73,13 @@ export class CanvasComponent {
     if (!this.editorService.autoFit()) {
       return this.editorService.zoomLevel();
     }
-    const scrollContainer = this.canvasContainer?.nativeElement?.parentElement?.parentElement;
-    const parentWidth = scrollContainer?.clientWidth || window.innerWidth;
-    const parentHeight = scrollContainer?.clientHeight || window.innerHeight;
+    
+    const pWidth = this.containerWidth();
+    const pHeight = this.containerHeight();
+    
+    // Fallback to window size only if container hasn't been measured yet
+    const parentWidth = pWidth > 0 ? pWidth : window.innerWidth;
+    const parentHeight = pHeight > 0 ? pHeight : window.innerHeight;
     
     const scaleX = Math.max(0.1, (parentWidth - 64) / this.editorService.canvasWidth());
     const scaleY = Math.max(0.1, (parentHeight - 64) / this.editorService.canvasHeight());

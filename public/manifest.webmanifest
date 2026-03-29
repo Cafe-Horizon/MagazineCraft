@@ -22,10 +22,13 @@
   ],
   "file_handlers": [
     {
-      "action": "./",
+      "action": "/",
       "accept": {
         "application/json": [".json"]
       }
     }
-  ]
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
 }

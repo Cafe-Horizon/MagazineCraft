@@ -19,30 +19,26 @@
 
     <!-- Delete Confirmation Modal -->
     @if (editorService.showDeleteConfirm()) {
-      <div class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl max-w-sm w-full overflow-hidden">
-          <div class="p-6">
-            <h3 class="text-lg font-medium text-zinc-100 mb-2">レイヤーの削除</h3>
-            <p class="text-sm text-zinc-400">
-              選択したレイヤーを削除してもよろしいですか？この操作は元に戻せません。
-            </p>
-          </div>
-          <div class="bg-zinc-950 px-6 py-4 flex justify-end gap-3 border-t border-zinc-800">
-            <button 
-              class="px-4 py-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
-              (click)="cancelDelete()"
-            >
-              キャンセル
-            </button>
-            <button 
-              class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-              (click)="executeDelete()"
-            >
-              削除する
-            </button>
-          </div>
-        </div>
-      </div>
+      <app-confirmation-modal
+        title="レイヤーの削除"
+        message="選択したレイヤーを削除してもよろしいですか？"
+        confirmText="削除する"
+        [isDangerous]="true"
+        (confirm)="executeDelete()"
+        (cancel)="cancelDelete()"
+      ></app-confirmation-modal>
+    }
+
+    <!-- Reset Confirmation Modal -->
+    @if (editorService.showResetConfirm()) {
+      <app-confirmation-modal
+        title="編集内容のリセット"
+        [message]="'全ての編集内容をリセットして初期状態に戻しますか？\nこの操作は元に戻せません。'"
+        confirmText="リセットする"
+        [isDangerous]="true"
+        (confirm)="executeReset()"
+        (cancel)="cancelReset()"
+      ></app-confirmation-modal>
     }
   </div>
 </div>
