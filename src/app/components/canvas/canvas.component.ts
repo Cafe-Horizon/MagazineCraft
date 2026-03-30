@@ -41,7 +41,8 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
 
           // Trigger initial centering as soon as dimensions are confirmed
           if (!this.isInitialized() && target.clientWidth > 0) {
-            this.centerCanvas();
+            // Delay slightly to allow Angular to reflect signal changes in the DOM
+            setTimeout(() => this.centerCanvas(), 50);
           }
         }
       });
@@ -52,16 +53,22 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   private centerCanvas() {
     if (this.scrollContainer) {
       const el = this.scrollContainer.nativeElement as HTMLElement;
-      const scrollX = (el.scrollWidth - el.clientWidth) / 2;
-      const scrollY = (el.scrollHeight - el.clientHeight) / 2;
-      el.scrollTo({
-        left: scrollX,
-        top: scrollY,
-        behavior: 'auto'
-      });
-      // Delay visibility just slightly to ensure scroll position is applied by browser
+      
+      // Use requestAnimationFrame to ensure we read the latest layout values
       requestAnimationFrame(() => {
-        this.isInitialized.set(true);
+        const scrollX = (el.scrollWidth - el.clientWidth) / 2;
+        const scrollY = (el.scrollHeight - el.clientHeight) / 2;
+        
+        el.scrollTo({
+          left: Math.max(0, scrollX),
+          top: Math.max(0, scrollY),
+          behavior: 'auto'
+        });
+
+        // Ensure initialization signal is set only after scroll is attempted
+        requestAnimationFrame(() => {
+          this.isInitialized.set(true);
+        });
       });
     }
   }
