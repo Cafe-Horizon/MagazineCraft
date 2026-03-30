@@ -1,13 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { EditorStateService } from '../../services/editor-state.service';
 import * as htmlToImage from 'html-to-image';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, MatMenuModule, MatDividerModule],
   templateUrl: './header.component.html'
 })
 export class HeaderComponent {
@@ -60,6 +62,10 @@ export class HeaderComponent {
   getZoomDisplay(): string {
     if (this.editorService.autoFit()) return 'Auto';
     return Math.round(this.editorService.zoomLevel() * 100) + '%';
+  }
+
+  triggerFileInput(input: HTMLInputElement) {
+    input.click();
   }
 
   importData(event: Event) {
