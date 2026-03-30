@@ -156,13 +156,8 @@ export class EditorStateService {
             const text = await file.text();
             const data = JSON.parse(text);
             if (data) {
-              this.isStateRestoring = true;
-              try {
-                this.loadSnapshot(data);
-                console.log('[EditorStateService] File applied successfully');
-              } finally {
-                setTimeout(() => (this.isStateRestoring = false), 0);
-              }
+              this.applyData(data);
+              console.log('[EditorStateService] File applied successfully');
             }
           } catch (e) {
             console.error('[EditorStateService] Failed to load data from PWA launch', e);
@@ -810,24 +805,21 @@ export class EditorStateService {
   }
 
   undo() {
+    const rStack = this.redoStack();
     const uStack = this.undoStack();
     if (uStack.length <= 1) return; // Need at least 2 states (current and previous)
     
-    this.isStateRestoring = true;
     const currentStateStr = uStack[uStack.length - 1]; // Current state is at top
     const prevStateStr = uStack[uStack.length - 2];
     
     try {
       const data = JSON.parse(prevStateStr);
-      this.loadSnapshot(data);
+      this.applyData(data);
       
       this.redoStack.update(s => [...s, currentStateStr]);
       this.undoStack.set(uStack.slice(0, -1));
     } catch (e) {
       console.error('Failed to parse undo state', e);
-    } finally {
-      // Allow the next effect cycle to bypass writing to the stack before clearing the flag
-      setTimeout(() => this.isStateRestoring = false, 0);
     }
   }
 
@@ -835,19 +827,26 @@ export class EditorStateService {
     const rStack = this.redoStack();
     if (rStack.length === 0) return;
     
-    this.isStateRestoring = true;
     const nextStateStr = rStack[rStack.length - 1];
     
     try {
       const data = JSON.parse(nextStateStr);
-      this.loadSnapshot(data);
+      this.applyData(data);
       
       this.undoStack.update(s => [...s, nextStateStr]);
       this.redoStack.set(rStack.slice(0, -1));
     } catch (e) {
       console.error('Failed to parse redo state', e);
+    }
+  }
+
+  applyData(data: any) {
+    this.isStateRestoring = true;
+    try {
+      this.loadSnapshot(data);
     } finally {
-      setTimeout(() => this.isStateRestoring = false, 0);
+      // Allow the next effect cycle to bypass writing to the stack
+      setTimeout(() => (this.isStateRestoring = false), 0);
     }
   }
 
@@ -883,18 +882,17 @@ export class EditorStateService {
   }
 
   async loadSavedState() {
-    this.isStateRestoring = true;
     try {
       const dbData = await this.indexedDb.get('magazine-cover-data');
       if (dbData) {
-        this.loadSnapshot(dbData);
+        this.applyData(dbData);
       } else {
         // Migration: Check localStorage
         const savedData = localStorage.getItem('magazine-cover-data');
         if (savedData) {
           try {
             const data = JSON.parse(savedData);
-            this.loadSnapshot(data);
+            this.applyData(data);
             // Save to IndexedDB immediately after migration
             await this.indexedDb.set('magazine-cover-data', data);
           } catch (e) {
@@ -902,8 +900,8 @@ export class EditorStateService {
           }
         }
       }
-    } finally {
-      setTimeout(() => (this.isStateRestoring = false), 0);
+    } catch (e) {
+      console.error('Failed to load saved state', e);
     }
   }
 
