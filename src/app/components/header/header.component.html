@@ -1,13 +1,13 @@
-<header class="h-14 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between px-4 lg:px-6 shrink-0 z-50">
-  <div class="flex items-center gap-2 lg:gap-3">
+<header class="h-14 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between px-3 lg:px-6 shrink-0 z-50">
+  <div class="flex items-center gap-1 sm:gap-2 lg:gap-3">
     <button (click)="toggleLeftSidebar()" class="lg:hidden p-2 text-zinc-400 hover:text-white transition-colors">
       <mat-icon>{{ editorService.showLeftSidebar() ? 'close' : 'menu' }}</mat-icon>
     </button>
     <mat-icon class="text-red-500 hidden sm:block">auto_awesome_mosaic</mat-icon>
-    <h1 class="text-sm lg:text-lg font-bold tracking-tight truncate">MagazineCraft</h1>
+    <h1 class="text-sm lg:text-lg font-bold tracking-tight truncate hidden sm:block">MagazineCraft</h1>
   </div>
-  <div class="flex items-center gap-1 lg:gap-3">
-    <button *ngIf="editorService.isModified()" (click)="reset()" class="bg-zinc-800 hover:bg-zinc-700 text-orange-400 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm flex items-center justify-center transition-colors border border-zinc-700 mr-1" title="初期状態にリセット">
+  <div class="flex items-center gap-1 sm:gap-2 lg:gap-3">
+    <button *ngIf="editorService.isModified()" (click)="reset()" class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-orange-400 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm items-center justify-center transition-colors border border-zinc-700 mr-1" title="初期状態にリセット">
       <mat-icon class="text-sm">restart_alt</mat-icon>
     </button>
     <button (click)="undo()" [disabled]="!canUndo()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm flex items-center justify-center transition-colors border border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed" title="元に戻す (Ctrl+Z)">
@@ -16,7 +16,7 @@
     <button (click)="redo()" [disabled]="!canRedo()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm flex items-center justify-center transition-colors border border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed" title="やり直し (Ctrl+Y)">
       <mat-icon class="text-sm">redo</mat-icon>
     </button>
-    <div class="flex items-center bg-zinc-800 rounded-md border border-zinc-700 overflow-hidden ml-1 lg:ml-2">
+    <div class="hidden md:flex items-center bg-zinc-800 rounded-md border border-zinc-700 overflow-hidden ml-1 lg:ml-2">
       <button (click)="zoomOut()" class="p-1 lg:px-2 hover:bg-zinc-700 text-zinc-300 transition-colors flex items-center justify-center" title="縮小 (Ctrl + -)">
         <mat-icon class="text-sm">remove</mat-icon>
       </button>
@@ -27,11 +27,11 @@
         <mat-icon class="text-sm">add</mat-icon>
       </button>
     </div>
-    <button (click)="exportData()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm flex items-center gap-2 transition-colors border border-zinc-700 ml-1 lg:ml-2" title="エクスポート">
+    <button (click)="exportData()" class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm items-center gap-2 transition-colors border border-zinc-700 ml-1 lg:ml-2" title="エクスポート">
       <mat-icon class="text-sm">file_download</mat-icon>
       <span class="hidden lg:inline">エクスポート</span>
     </button>
-    <label class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm flex items-center gap-2 transition-colors border border-zinc-700 cursor-pointer" title="インポート">
+    <label class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm items-center gap-2 transition-colors border border-zinc-700 cursor-pointer" title="インポート">
       <mat-icon class="text-sm">file_upload</mat-icon>
       <span class="hidden lg:inline">インポート</span>
       <input type="file" class="hidden" accept=".json" (change)="importData($event)" />
@@ -43,5 +43,44 @@
     <button (click)="toggleRightSidebar()" class="lg:hidden p-2 text-zinc-400 hover:text-white transition-colors" [class.text-blue-500]="editorService.selectedElementIds().length > 0">
       <mat-icon>{{ editorService.showRightSidebar() ? 'close' : 'settings' }}</mat-icon>
     </button>
+    
+    <!-- Mobile More Menu -->
+    <button [matMenuTriggerFor]="moreMenu" class="md:hidden p-2 text-zinc-400 hover:text-white transition-colors ml-1" title="メニュー">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    
+    <mat-menu #moreMenu="matMenu" class="bg-zinc-900 border border-zinc-800 text-zinc-300">
+      <button mat-menu-item (click)="zoomIn()">
+        <mat-icon class="text-zinc-400">add</mat-icon>
+        <span>拡大 ({{ getZoomDisplay() }})</span>
+      </button>
+      <button mat-menu-item (click)="zoomOut()">
+        <mat-icon class="text-zinc-400">remove</mat-icon>
+        <span>縮小</span>
+      </button>
+      <button mat-menu-item (click)="zoomReset()">
+        <mat-icon class="text-zinc-400">center_focus_strong</mat-icon>
+        <span>画面サイズに合わせる</span>
+      </button>
+      
+      <mat-divider class="border-zinc-800 my-1"></mat-divider>
+      
+      <button mat-menu-item (click)="exportData()">
+        <mat-icon class="text-zinc-400">file_download</mat-icon>
+        <span>エクスポート</span>
+      </button>
+      <button mat-menu-item (click)="triggerFileInput(mobileImportInput)">
+        <mat-icon class="text-zinc-400">file_upload</mat-icon>
+        <span>インポート</span>
+        <input type="file" #mobileImportInput class="hidden" accept=".json" (change)="importData($event)" />
+      </button>
+      
+      <mat-divider class="border-zinc-800 my-1"></mat-divider>
+      
+      <button mat-menu-item (click)="reset()" *ngIf="editorService.isModified()" class="text-orange-400">
+        <mat-icon class="text-orange-400">restart_alt</mat-icon>
+        <span>初期状態にリセット</span>
+      </button>
+    </mat-menu>
   </div>
 </header>
