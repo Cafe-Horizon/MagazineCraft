@@ -1,5 +1,5 @@
 {
   "name": "MagazineCraft",
-  "description": "A tool to create weekly magazine style covers with text and images.",
+  "description": "月刊誌の表紙を作成するために開発された Webアプリ",
   "requestFramePermissions": []
 }
