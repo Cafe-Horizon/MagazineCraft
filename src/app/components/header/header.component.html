@@ -75,12 +75,14 @@
         <input type="file" #mobileImportInput class="hidden" accept=".json" (change)="importData($event)" />
       </button>
       
-      <mat-divider class="border-zinc-800 my-1"></mat-divider>
-      
-      <button mat-menu-item (click)="reset()" *ngIf="editorService.isModified()" class="text-orange-400">
-        <mat-icon class="text-orange-400">restart_alt</mat-icon>
-        <span>初期状態にリセット</span>
-      </button>
+      @if (editorService.isModified()) {
+        <mat-divider class="border-zinc-800 my-1"></mat-divider>
+        
+        <button mat-menu-item (click)="reset()" class="text-orange-400">
+          <mat-icon class="text-orange-400">restart_alt</mat-icon>
+          <span>初期状態にリセット</span>
+        </button>
+      }
     </mat-menu>
   </div>
 </header>
