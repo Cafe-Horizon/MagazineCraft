@@ -8,14 +8,12 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" (click)="onCancel()">
       <div 
-        class="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl max-w-sm w-full overflow-hidden" 
+        class="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden" 
         (click)="$event.stopPropagation()"
       >
         <div class="p-6">
           <h3 class="text-lg font-medium text-zinc-100 mb-2">{{ title }}</h3>
-          <p class="text-sm text-zinc-400 whitespace-pre-wrap">
-            {{ message }}
-          </p>
+          <p class="text-sm text-zinc-400 whitespace-pre-wrap">{{ message }}</p>
         </div>
         <div class="bg-zinc-950 px-6 py-4 flex justify-end gap-3 border-t border-zinc-800">
           <button 
