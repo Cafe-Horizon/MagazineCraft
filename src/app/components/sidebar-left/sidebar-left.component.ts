@@ -41,7 +41,23 @@ export class SidebarLeftComponent {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.editorService.addImage(e.target?.result as string);
+        const src = e.target?.result as string;
+        const img = new Image();
+        img.onload = () => {
+          let width = img.naturalWidth;
+          let height = img.naturalHeight;
+
+          // Limit initial size if too large while maintaining aspect ratio
+          const maxInitialSize = 800;
+          if (width > maxInitialSize || height > maxInitialSize) {
+            const ratio = Math.min(maxInitialSize / width, maxInitialSize / height);
+            width *= ratio;
+            height *= ratio;
+          }
+
+          this.editorService.addImage(src, width, height);
+        };
+        img.src = src;
       };
       reader.readAsDataURL(file);
     }

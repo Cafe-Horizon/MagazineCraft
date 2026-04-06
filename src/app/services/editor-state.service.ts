@@ -398,14 +398,14 @@ export class EditorStateService {
     this.selectedElementIds.set([newText.id]);
   }
 
-  addImage(src: string) {
+  addImage(src: string, width: number = 400, height: number = 400) {
     const newImage: ImageElement = {
       id: Math.random().toString(36).substring(2, 9),
       src,
       x: 400,
       y: 400,
-      width: 400,
-      height: 400,
+      width,
+      height,
       rotation: 0,
       locked: false,
       zIndex: this.getMaxZIndex() + 1
