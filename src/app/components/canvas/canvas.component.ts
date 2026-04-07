@@ -339,9 +339,40 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
             break;
           }
         }
-        
-        newWidth = Math.max(20, newWidth);
-        newHeight = Math.max(20, newHeight);
+
+        if (event.shiftKey) {
+          const startW = this.editorService.elementStartWidth();
+          const startH = this.editorService.elementStartHeight();
+          const ratio = startW / startH;
+          
+          if (this.editorService.verticalGuide() !== null && this.editorService.horizontalGuide() === null) {
+            newHeight = newWidth / ratio;
+          } else if (this.editorService.horizontalGuide() !== null && this.editorService.verticalGuide() === null) {
+            newWidth = newHeight * ratio;
+          } else {
+            if (Math.abs(dx) > Math.abs(dy)) {
+              newHeight = newWidth / ratio;
+              this.editorService.horizontalGuide.set(null);
+            } else {
+              newWidth = newHeight * ratio;
+              this.editorService.verticalGuide.set(null);
+            }
+          }
+          
+          // Ensure minimum size while maintaining ratio
+          if (newWidth < 20 || newHeight < 20) {
+            if (ratio >= 1) {
+              newWidth = Math.max(20, 20 * ratio);
+              newHeight = newWidth / ratio;
+            } else {
+              newHeight = Math.max(20, 20 / ratio);
+              newWidth = newHeight * ratio;
+            }
+          }
+        } else {
+          newWidth = Math.max(20, newWidth);
+          newHeight = Math.max(20, newHeight);
+        }
 
         if (selected.type === 'image') {
           this.editorService.updateImageElement(selected.data.id, { width: newWidth, height: newHeight });
