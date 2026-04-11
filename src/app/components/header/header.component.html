@@ -27,6 +27,9 @@
         <mat-icon class="text-sm">add</mat-icon>
       </button>
     </div>
+    <button (click)="toggleGrayscale()" [class.text-blue-400]="editorService.grayscaleMode()" [class.bg-blue-500\/10]="editorService.grayscaleMode()" class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm items-center justify-center transition-colors border border-zinc-700 ml-1 lg:ml-2" title="グレースケールで確認">
+      <mat-icon class="text-sm">tonality</mat-icon>
+    </button>
     <button (click)="exportData()" class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm items-center gap-2 transition-colors border border-zinc-700 ml-1 lg:ml-2" title="エクスポート">
       <mat-icon class="text-sm">file_download</mat-icon>
       <span class="hidden lg:inline">エクスポート</span>
@@ -61,6 +64,10 @@
       <button mat-menu-item (click)="zoomReset()">
         <mat-icon class="text-zinc-400">center_focus_strong</mat-icon>
         <span>画面サイズに合わせる</span>
+      </button>
+      <button mat-menu-item (click)="toggleGrayscale()" [class.text-blue-400]="editorService.grayscaleMode()">
+        <mat-icon [class.text-blue-400]="editorService.grayscaleMode()" class="text-zinc-400">tonality</mat-icon>
+        <span>グレースケールで確認</span>
       </button>
       
       <mat-divider class="border-zinc-800 my-1"></mat-divider>
