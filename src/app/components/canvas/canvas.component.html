@@ -1,7 +1,7 @@
 <main #scrollContainer class="flex-1 bg-zinc-950 overflow-auto relative flex transition-opacity duration-200"
   [class.opacity-0]="!isInitialized()" style="scrollbar-gutter: stable" (click)="deselectAll()"
   (keydown.enter)="deselectAll()" (keydown.space)="deselectAll()" tabindex="0" (mousemove)="onMouseMove($event)"
-  (mouseup)="onMouseUp()" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd()" (wheel)="onWheel($event)">
+  (mouseup)="onMouseUp()" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd()">
 
   <!-- Wrapper for safe padding and centering -->
   <div class="m-auto flex-shrink-0 relative block"
@@ -35,7 +35,7 @@
 
     <!-- Text Elements -->
     @for (el of editorService.textElements(); track el.id) {
-    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none"
+    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none origin-top-left"
       [class.pointer-events-none]="el.locked && !editorService.selectedElementIds().includes(el.id)"
       [class.ring-2]="editorService.selectedElementIds().includes(el.id)"
       [class.ring-blue-500]="editorService.selectedElementIds().includes(el.id)" [style.z-index]="el.zIndex"
@@ -58,7 +58,7 @@
 
     <!-- Shape Elements -->
     @for (el of editorService.shapeElements(); track el.id) {
-    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none"
+    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none origin-top-left"
       [class.pointer-events-none]="el.locked && !editorService.selectedElementIds().includes(el.id)"
       [class.ring-2]="editorService.selectedElementIds().includes(el.id)"
       [class.ring-blue-500]="editorService.selectedElementIds().includes(el.id)" [style.width.px]="el.width"
@@ -80,7 +80,7 @@
 
     <!-- Image Elements -->
     @for (el of editorService.imageElements(); track el.id) {
-    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none"
+    <div [id]="'el-' + el.id" class="absolute top-0 left-0 will-change-transform cursor-move select-none origin-top-left"
       [class.pointer-events-none]="el.locked && !editorService.selectedElementIds().includes(el.id)"
       [class.ring-2]="editorService.selectedElementIds().includes(el.id)"
       [class.ring-blue-500]="editorService.selectedElementIds().includes(el.id)" [style.width.px]="el.width"
