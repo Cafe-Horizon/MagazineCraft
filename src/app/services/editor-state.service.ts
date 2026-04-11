@@ -205,7 +205,7 @@ export class EditorStateService {
           }
         }
       }
-    }, { allowSignalWrites: true });
+    });
 
     if (isPlatformBrowser(this.platformId)) {
       // Keyboard shortcuts for Undo / Redo
@@ -803,6 +803,7 @@ export class EditorStateService {
     const width = this.canvasWidth();
     const height = this.canvasHeight();
     const bgImage = this.backgroundImage();
+    const isGrayscale = this.grayscaleMode();
     
     // Create base data for embedding
     const data = {
@@ -832,17 +833,24 @@ export class EditorStateService {
     for (const el of elements) {
       if (el.type === 'shape') {
         const sel = el as any as ShapeElement;
-        svgContent += `  <rect x="${sel.x}" y="${sel.y}" width="${sel.width}" height="${sel.height}" fill="${sel.backgroundColor}" transform="rotate(${sel.rotation}, ${sel.x + sel.width / 2}, ${sel.y + sel.height / 2})" />\n`;
+        // SVG rotates around (cx, cy). Using (x, y) for top-left rotation consistency.
+        svgContent += `  <rect x="${sel.x}" y="${sel.y}" width="${sel.width}" height="${sel.height}" fill="${sel.backgroundColor}" transform="rotate(${sel.rotation}, ${sel.x}, ${sel.y})" />\n`;
       } else if (el.type === 'image') {
         const iel = el as ImageElement;
-        svgContent += `  <image href="${iel.src}" x="${iel.x}" y="${iel.y}" width="${iel.width}" height="${iel.height}" transform="rotate(${iel.rotation}, ${iel.x + iel.width / 2}, ${iel.y + iel.height / 2})" preserveAspectRatio="xMidYMid slice" />\n`;
+        svgContent += `  <image href="${iel.src}" x="${iel.x}" y="${iel.y}" width="${iel.width}" height="${iel.height}" transform="rotate(${iel.rotation}, ${iel.x}, ${iel.y})" preserveAspectRatio="xMidYMid slice" />\n`;
       } else if (el.type === 'text') {
         const tel = el as TextElement;
-        // Using foreignObject for high-fidelity text rendering (supports writing-mode, multi-line, etc.)
-        const style = `
+        // Using foreignObject for high-fidelity text rendering 
+        // We avoid putting background-color on the foreignObject directly to prevent it filling the whole area.
+        const containerStyle = `
           display: block;
           width: 100%;
           height: 100%;
+          overflow: visible;
+        `.replace(/\s+/g, ' ').trim();
+
+        const innerStyle = `
+          display: inline-block;
           font-family: ${tel.fontFamily};
           font-size: ${tel.fontSize}px;
           color: ${tel.color};
@@ -857,14 +865,12 @@ export class EditorStateService {
           -webkit-text-stroke: ${tel.strokeWidth}px ${tel.strokeColor};
           paint-order: stroke fill;
           white-space: pre-wrap;
-          overflow: visible;
         `.replace(/\s+/g, ' ').trim();
 
-        // Estimated box size (this is tricky in SVG without measuring, but we'll use a large box)
-        // For better results, we might want to store actual width/height if we had it.
-        // For now, we'll use a large enough container.
         svgContent += `  <foreignObject x="${tel.x}" y="${tel.y}" width="${width}" height="${height}" transform="rotate(${tel.rotation}, ${tel.x}, ${tel.y}) scale(${tel.scaleX}, ${tel.scaleY})">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="${style}">${tel.text}</div>
+    <div xmlns="http://www.w3.org/1999/xhtml" style="${containerStyle}">
+      <div style="${innerStyle}">${tel.text}</div>
+    </div>
   </foreignObject>\n`;
       }
     }
