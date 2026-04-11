@@ -30,14 +30,14 @@
     <button (click)="toggleGrayscale()" [class.text-blue-400]="editorService.grayscaleMode()" [class.bg-blue-500\/10]="editorService.grayscaleMode()" class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-3 lg:py-1.5 rounded-md font-medium text-sm items-center justify-center transition-colors border border-zinc-700 ml-1 lg:ml-2" title="グレースケールで確認">
       <mat-icon class="text-sm">tonality</mat-icon>
     </button>
-    <button (click)="exportData()" class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm items-center gap-2 transition-colors border border-zinc-700 ml-1 lg:ml-2" title="エクスポート">
+    <button (click)="exportData()" class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm items-center gap-2 transition-colors border border-zinc-700 ml-1 lg:ml-2" title="エクスポート (.svg)">
       <mat-icon class="text-sm">file_download</mat-icon>
-      <span class="hidden lg:inline">エクスポート</span>
+      <span class="hidden lg:inline">エクスポート (.svg)</span>
     </button>
     <label class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm items-center gap-2 transition-colors border border-zinc-700 cursor-pointer" title="インポート">
       <mat-icon class="text-sm">file_upload</mat-icon>
-      <span class="hidden lg:inline">インポート</span>
-      <input type="file" class="hidden" accept=".json" (change)="importData($event)" />
+      <span class="hidden lg:inline">インポート (.svg)</span>
+      <input type="file" class="hidden" accept=".svg,.json" (change)="importData($event)" />
     </label>
     <button (click)="downloadImage()" class="bg-red-600 hover:bg-red-700 text-white p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm flex items-center gap-2 transition-colors" title="画像として保存">
       <mat-icon class="text-sm">download</mat-icon>
@@ -74,12 +74,12 @@
       
       <button mat-menu-item (click)="exportData()">
         <mat-icon class="text-zinc-400">file_download</mat-icon>
-        <span>エクスポート</span>
+        <span>エクスポート (.svg)</span>
       </button>
       <button mat-menu-item (click)="triggerFileInput(mobileImportInput)">
         <mat-icon class="text-zinc-400">file_upload</mat-icon>
-        <span>インポート</span>
-        <input type="file" #mobileImportInput class="hidden" accept=".json" (change)="importData($event)" />
+        <span>インポート (.svg)</span>
+        <input type="file" #mobileImportInput class="hidden" accept=".svg,.json" (change)="importData($event)" />
       </button>
       
       @if (editorService.isModified()) {

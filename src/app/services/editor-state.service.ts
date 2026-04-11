@@ -155,11 +155,11 @@ export class EditorStateService {
             console.log('[EditorStateService] Reading file from launchParams:', fileHandle.name);
             const file = await fileHandle.getFile();
             const text = await file.text();
-            const data = JSON.parse(text);
-            if (data) {
-              this.applyData(data);
-              console.log('[EditorStateService] File applied successfully');
+            
+            if (fileHandle.name.toLowerCase().endsWith('.svg')) {
+              this.importFromSvg(text);
             }
+            console.log('[EditorStateService] File applied successfully');
           } catch (e) {
             console.error('[EditorStateService] Failed to load data from PWA launch', e);
           }
@@ -787,26 +787,110 @@ export class EditorStateService {
   }
 
   exportData() {
-    const data = {
-      backgroundImage: this.backgroundImage(),
-      textElements: this.textElements(),
-      imageElements: this.imageElements(),
-      shapeElements: this.shapeElements(),
-      groups: this.groups(),
-      canvasWidth: this.canvasWidth(),
-      canvasHeight: this.canvasHeight()
-    };
-    
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+    const svg = this.generateSvg();
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     
     const link = document.createElement('a');
-    link.download = 'magazine-cover-data.json';
+    link.download = `magazine-cover-${Date.now()}.svg`;
     link.href = url;
     link.click();
     
     URL.revokeObjectURL(url);
+  }
+
+  generateSvg(): string {
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const bgImage = this.backgroundImage();
+    
+    // Create base data for embedding
+    const data = {
+      backgroundImage: bgImage,
+      textElements: this.textElements(),
+      imageElements: this.imageElements(),
+      shapeElements: this.shapeElements(),
+      groups: this.groups(),
+      canvasWidth: width,
+      canvasHeight: height
+    };
+    const metadata = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+
+    let svgContent = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <desc id="magcraft-metadata">${metadata}</desc>
+  <rect width="100%" height="100%" fill="white" />
+`;
+
+    // 1. Background Image
+    if (bgImage) {
+      svgContent += `  <image href="${bgImage}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice" />\n`;
+    }
+
+    // 2. Elements (Sorted by Z-Index)
+    const elements = [...this.allElements()].sort((a, b) => a.zIndex - b.zIndex);
+    
+    for (const el of elements) {
+      if (el.type === 'shape') {
+        const sel = el as any as ShapeElement;
+        svgContent += `  <rect x="${sel.x}" y="${sel.y}" width="${sel.width}" height="${sel.height}" fill="${sel.backgroundColor}" transform="rotate(${sel.rotation}, ${sel.x + sel.width / 2}, ${sel.y + sel.height / 2})" />\n`;
+      } else if (el.type === 'image') {
+        const iel = el as ImageElement;
+        svgContent += `  <image href="${iel.src}" x="${iel.x}" y="${iel.y}" width="${iel.width}" height="${iel.height}" transform="rotate(${iel.rotation}, ${iel.x + iel.width / 2}, ${iel.y + iel.height / 2})" preserveAspectRatio="xMidYMid slice" />\n`;
+      } else if (el.type === 'text') {
+        const tel = el as TextElement;
+        // Using foreignObject for high-fidelity text rendering (supports writing-mode, multi-line, etc.)
+        const style = `
+          display: block;
+          width: 100%;
+          height: 100%;
+          font-family: ${tel.fontFamily};
+          font-size: ${tel.fontSize}px;
+          color: ${tel.color};
+          background-color: ${tel.backgroundColor};
+          font-weight: ${tel.fontWeight};
+          writing-mode: ${tel.writingMode};
+          text-shadow: ${tel.textShadow};
+          letter-spacing: ${tel.letterSpacing}px;
+          line-height: ${tel.lineHeight};
+          padding: ${tel.padding}px;
+          text-align: ${tel.textAlign};
+          -webkit-text-stroke: ${tel.strokeWidth}px ${tel.strokeColor};
+          paint-order: stroke fill;
+          white-space: pre-wrap;
+          overflow: visible;
+        `.replace(/\s+/g, ' ').trim();
+
+        // Estimated box size (this is tricky in SVG without measuring, but we'll use a large box)
+        // For better results, we might want to store actual width/height if we had it.
+        // For now, we'll use a large enough container.
+        svgContent += `  <foreignObject x="${tel.x}" y="${tel.y}" width="${width}" height="${height}" transform="rotate(${tel.rotation}, ${tel.x}, ${tel.y}) scale(${tel.scaleX}, ${tel.scaleY})">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="${style}">${tel.text}</div>
+  </foreignObject>\n`;
+      }
+    }
+
+    svgContent += `</svg>`;
+    return svgContent;
+  }
+
+  importFromSvg(content: string) {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(content, 'image/svg+xml');
+      const metadataEl = doc.getElementById('magcraft-metadata');
+      if (!metadataEl || !metadataEl.textContent) {
+        throw new Error('Metadata not found in SVG');
+      }
+      
+      const jsonStr = decodeURIComponent(escape(atob(metadataEl.textContent)));
+      const data = JSON.parse(jsonStr);
+      if (data) {
+        this.applyData(data);
+      }
+    } catch (e) {
+      console.error('Failed to import from SVG', e);
+      throw e;
+    }
   }
 
   undo() {
