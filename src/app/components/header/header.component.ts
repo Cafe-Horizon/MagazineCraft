@@ -59,6 +59,10 @@ export class HeaderComponent {
     this.editorService.confirmReset();
   }
 
+  toggleGrayscale() {
+    this.editorService.toggleGrayscale();
+  }
+
   getZoomDisplay(): string {
     if (this.editorService.autoFit()) return 'Auto';
     return Math.round(this.editorService.zoomLevel() * 100) + '%';
