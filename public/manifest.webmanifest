@@ -22,8 +22,9 @@
   ],
   "file_handlers": [
     {
-      "action": "/",
+      "action": "./",
       "accept": {
+        "image/svg+xml": [".svg"],
         "application/json": [".json"]
       }
     }

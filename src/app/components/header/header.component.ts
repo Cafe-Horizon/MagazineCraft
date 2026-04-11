@@ -81,10 +81,9 @@ export class HeaderComponent {
       reader.onload = (e) => {
         try {
           const content = e.target?.result as string;
-          const data = JSON.parse(content);
           
-          if (data) {
-            this.editorService.loadSnapshot(data);
+          if (file.name.toLowerCase().endsWith('.svg')) {
+            this.editorService.importFromSvg(content);
           }
         } catch (error) {
           console.error('Error parsing imported data:', error);

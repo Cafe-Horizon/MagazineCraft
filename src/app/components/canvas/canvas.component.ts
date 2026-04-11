@@ -48,6 +48,10 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
       });
       this.resizeObserver.observe(parent);
     }
+
+    // Add non-passive wheel listener to prevent browser zoom
+    const el = this.scrollContainer.nativeElement as HTMLElement;
+    el.addEventListener('wheel', (e) => this.onWheel(e as WheelEvent), { passive: false });
   }
 
   private centerCanvas() {
