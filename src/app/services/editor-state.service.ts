@@ -120,6 +120,7 @@ export class EditorStateService {
   // Zoom state (not saved in document data)
   zoomLevel = signal(1); // 1 = 100%
   autoFit = signal(true); 
+  grayscaleMode = signal(false);
 
   isModified = computed(() => {
     return (
@@ -258,6 +259,10 @@ export class EditorStateService {
   setZoom(level: number) {
     this.autoFit.set(false);
     this.zoomLevel.set(Math.round(Math.min(5, Math.max(0.1, level)) * 10) / 10);
+  }
+
+  toggleGrayscale() {
+    this.grayscaleMode.update(v => !v);
   }
 
   // Computed properties
