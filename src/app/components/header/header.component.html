@@ -37,7 +37,7 @@
     <label class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm items-center gap-2 transition-colors border border-zinc-700 cursor-pointer" title="インポート">
       <mat-icon class="text-sm">file_upload</mat-icon>
       <span class="hidden lg:inline">インポート (.svg)</span>
-      <input type="file" class="hidden" accept=".svg,.json" (change)="importData($event)" />
+      <input type="file" class="hidden" accept=".svg" (change)="importData($event)" />
     </label>
     <button (click)="downloadImage()" class="bg-red-600 hover:bg-red-700 text-white p-2 lg:px-4 lg:py-1.5 rounded-md font-medium text-sm flex items-center gap-2 transition-colors" title="画像として保存">
       <mat-icon class="text-sm">download</mat-icon>
@@ -79,7 +79,7 @@
       <button mat-menu-item (click)="triggerFileInput(mobileImportInput)">
         <mat-icon class="text-zinc-400">file_upload</mat-icon>
         <span>インポート (.svg)</span>
-        <input type="file" #mobileImportInput class="hidden" accept=".svg,.json" (change)="importData($event)" />
+        <input type="file" #mobileImportInput class="hidden" accept=".svg" (change)="importData($event)" />
       </button>
       
       @if (editorService.isModified()) {
