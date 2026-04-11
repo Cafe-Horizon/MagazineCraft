@@ -9,9 +9,10 @@
     [style.height.px]="editorService.canvasHeight() * getScaleValue() + (editorService.isMobile() ? 32 : 128)">
     
     <!-- The Canvas Container -->
-    <div id="main-canvas" #canvasContainer class="absolute top-4 left-4 lg:top-16 lg:left-16 bg-white shadow-2xl overflow-hidden origin-top-left max-w-none"
+    <div id="main-canvas" #canvasContainer class="absolute top-4 left-4 lg:top-16 lg:left-16 bg-white shadow-2xl overflow-hidden origin-top-left max-w-none transition-[filter] duration-300"
     [style.width.px]="editorService.canvasWidth()" [style.height.px]="editorService.canvasHeight()"
-    [style.transform]="getTransformScale()">
+    [style.transform]="getTransformScale()"
+    [style.filter]="editorService.grayscaleMode() ? 'grayscale(100%)' : 'none'">
     <!-- Background Image -->
     @if (editorService.backgroundImage()) {
     <img [src]="editorService.backgroundImage()" alt="背景画像"
